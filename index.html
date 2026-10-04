@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI x Bio Tracker</title>
+<style>
+:root{--bg:#f6f7f5;--card:#fff;--fg:#1c2421;--muted:#63706b;--line:#d9dfdb;--accent:#17705a;--done:#e3f1ec}
+@media (prefers-color-scheme:dark){:root{--bg:#141917;--card:#1d2421;--fg:#e8eeeb;--muted:#9aa8a2;--line:#313b37;--accent:#5fc7a8;--done:#1f3830;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+main{max-width:820px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:17px;margin:0}
+.sub{color:var(--muted);margin:0 0 16px}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.total{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;font-weight:600}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-top:20px;overflow:hidden}
+.head{padding:14px 16px;display:grid;gap:6px}
+.head .row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+.head p{margin:0;color:var(--muted);font-size:14px}
+.count{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+label.day{display:grid;grid-template-columns:22px 92px minmax(0,1fr) 34px;gap:10px;padding:10px 16px;border-top:1px solid var(--line);align-items:start;cursor:pointer}
+label.day input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--accent)}
+.date{color:var(--muted);font-variant-numeric:tabular-nums}
+.hrs{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+label.day.done{background:var(--done)}
+label.day.done .task{color:var(--muted);text-decoration:line-through}
+label.day.today .date{color:var(--accent);font-weight:600}
+a{color:var(--accent)}
+.task{display:grid;gap:3px}
+.course{font-weight:600}
+.course em{font-style:normal;font-weight:400;color:var(--muted);font-size:13px;border:1px solid var(--line);border-radius:4px;padding:0 5px;white-space:nowrap}
+.tool{font-size:13px;color:var(--muted)}
+footer{margin-top:20px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);cursor:pointer}
+@media (max-width:520px){label.day{grid-template-columns:22px minmax(0,1fr)}.date{grid-column:2}.task{grid-column:2}.hrs{display:none}}
+@media print{body{background:#fff;color:#000}button{display:none}section{break-inside:avoid}a{color:#000}}
+</style>
+</head>
+<body>
+<main>
+<h1>AI x Bio: 30 days</h1>
+<p class="sub">Sunday 4 October to Monday 2 November 2026. Each day has one course and one task. Spend about half the time on each. Tick a day when you finish it. Your ticks are saved in this browser.</p>
+<div class="total"><span id="totalText"></span><span id="hoursText"></span></div>
+<div class="bar"><i id="totalBar"></i></div>
+<div id="weeks"></div>
+<footer><span>Use public or published data only. Check UCSF policy before putting unpublished data into any AI tool.</span><button id="reset" type="button">Clear all ticks</button></footer>
+</main>
+<script>
+var START = new Date(2026, 9, 4);
+var WEEKS = [
+ {
+  "title": "Week 1: AI as research assistant",
+  "goal": "Goal: use AI for literature and analysis, and read the Python it writes. You finish with project 1.",
+  "days": [
+   {
+    "t": "Create a GitHub account and open Google Colab.",
+    "c": [
+     "Learning GitHub",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/learning-github"
+    ],
+    "tool": [
+     "Google Colab",
+     "https://colab.research.google.com/"
+    ],
+    "h": 1
+   },
+   {
+    "t": "Ask Claude and FutureHouse the same question about V-ATPase in proximal tubule injury.",
+    "c": [
+     "How to Research and Write Using Generative AI Tools",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/how-to-research-and-write-using-generative-ai-tools"
+    ],
+    "tool": [
+     "FutureHouse",
+     "https://platform.futurehouse.org/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Check 10 citations from each report. Write a one-page evidence summary.",
+    "c": [
+     "Using AI in Research Projects",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/using-ai-in-research-projects"
+    ],
+    "tool": [
+     "Claude",
+     "https://claude.ai/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the chapters on basics and data structures. Then have Claude write a differential-protein analysis in Python and read it line by line.",
+    "c": [
+     "Python Essential Training",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/python-essential-training-18764650"
+    ],
+    "tool": [
+     "Claude",
+     "https://claude.ai/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the chapters on loops and functions. Then rerun the analysis yourself in Colab and change the thresholds and groups.",
+    "c": [
+     "Python Essential Training",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/python-essential-training-18764650"
+    ],
+    "tool": [
+     "Google Colab",
+     "https://colab.research.google.com/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the first half. Then add pathway enrichment and compare it with your R result.",
+    "c": [
+     "pandas Essential Training",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/pandas-essential-training"
+    ],
+    "tool": [
+     "GSEApy",
+     "https://gseapy.readthedocs.io/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the first hour for a worked biology project. Then finish your notebook and publish project 1.",
+    "c": [
+     "Python for Bioinformatics: Drug Discovery Using Machine Learning",
+     "YouTube",
+     "https://www.youtube.com/watch?v=jBlTQjcKuaY"
+    ],
+    "tool": [
+     "GitHub",
+     "https://github.com/"
+    ],
+    "h": 4
+   }
+  ]
+ },
+ {
+  "title": "Week 2: AI for targets and drugs",
+  "goal": "Goal: take ATP6V0A1 from evidence to a screen design. You finish with project 2.",
+  "days": [
+   {
+    "t": "Do the tutorial so you can read predicted structures and their confidence scores.",
+    "c": [
+     "AlphaFold: a practical guide",
+     "EMBL-EBI, free",
+     "https://ebi.ac.uk/training/online/courses/alphafold"
+    ],
+    "tool": null,
+    "h": 1
+   },
+   {
+    "t": "Do the quick tour. Then look up ATP6V0A1 in Open Targets, UniProt and the AlphaFold database.",
+    "c": [
+     "Open Targets: quick tour",
+     "EMBL-EBI, free",
+     "https://www.ebi.ac.uk/training/online/courses/open-targets-quick-tour/"
+    ],
+    "tool": [
+     "Open Targets",
+     "https://platform.opentargets.org/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the webinar. Then have Claude build a target dossier and correct it from what you know at the bench.",
+    "c": [
+     "A guide to identifying and prioritising drug targets with the Open Targets Platform",
+     "YouTube",
+     "https://www.youtube.com/watch?v=Wd2i2mQN3XM"
+    ],
+    "tool": [
+     "AlphaFold database",
+     "https://alphafold.ebi.ac.uk/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Do the quick tour. Then shortlist 10 compounds for cystinosis, with astaxanthin as the benchmark.",
+    "c": [
+     "ChEMBL: quick tour",
+     "EMBL-EBI, free",
+     "https://www.ebi.ac.uk/training/online/courses/chembl-quick-tour/"
+    ],
+    "tool": [
+     "ChEMBL",
+     "https://www.ebi.ac.uk/chembl/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the section on bioactivity data. Then rank your shortlist and ask Claude to argue against your top three.",
+    "c": [
+     "Python for Bioinformatics: Drug Discovery Using Machine Learning",
+     "YouTube",
+     "https://www.youtube.com/watch?v=jBlTQjcKuaY"
+    ],
+    "tool": [
+     "Claude",
+     "https://claude.ai/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch one drug discovery lecture. Then have Claude design a high-content screen for your top five and mark what it gets wrong.",
+    "c": [
+     "MIT Deep Learning in Life Sciences (drug discovery lectures)",
+     "YouTube",
+     "https://www.youtube.com/playlist?list=PLypiXJdtIca5sxV7aE3-PS9fYX3vUdIOX"
+    ],
+    "tool": [
+     "Claude",
+     "https://claude.ai/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Build day. Write up the target-to-screen workflow and publish project 2.",
+    "c": [
+     "GitHub Essential Training: 1 The Basics",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/github-essential-training-1-the-basics"
+    ],
+    "tool": [
+     "GitHub",
+     "https://github.com/"
+    ],
+    "h": 4
+   }
+  ]
+ },
+ {
+  "title": "Week 3: AI for big data",
+  "goal": "Goal: run a single-cell analysis yourself and build a classifier. You finish with project 3.",
+  "days": [
+   {
+    "t": "Watch the walkthrough from start to finish.",
+    "c": [
+     "Complete single-cell RNA-seq analysis walkthrough",
+     "YouTube",
+     "https://www.youtube.com/watch?v=uvyG9yLuNSE"
+    ],
+    "tool": null,
+    "h": 1
+   },
+   {
+    "t": "Watch the first videos. Then download a small KPMP kidney dataset and have Claude load it with Scanpy in Colab.",
+    "c": [
+     "Introduction to single-cell RNA-seq analysis in Python using Scanpy",
+     "YouTube",
+     "https://www.youtube.com/playlist?list=PL4rcQcNPLZxWQQH7LlRBMkAo5NWuHX1e3"
+    ],
+    "tool": [
+     "KPMP kidney data",
+     "https://cellxgene.cziscience.com/collections/0f528c8a-a25c-4840-8fa3-d156fa11086f"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Continue the playlist. Then run quality control, clustering and annotation, and check the cell types against markers you know.",
+    "c": [
+     "Introduction to single-cell RNA-seq analysis in Python using Scanpy",
+     "YouTube",
+     "https://www.youtube.com/playlist?list=PL4rcQcNPLZxWQQH7LlRBMkAo5NWuHX1e3"
+    ],
+    "tool": [
+     "Google Colab",
+     "https://colab.research.google.com/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch one video on plotting gene expression. Then plot ATP6V0A1 across healthy and injured proximal tubule states.",
+    "c": [
+     "Sanbomics single-cell tutorials",
+     "YouTube",
+     "https://www.youtube.com/channel/UCuf90yPD_Yx53xZyVLtvRmA/videos"
+    ],
+    "tool": [
+     "Kidney Tissue Atlas",
+     "https://atlas.kpmp.org/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the first half. Then build a rejection versus stable classifier on a public dataset.",
+    "c": [
+     "Machine Learning with Python: Foundations",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/machine-learning-with-python-foundations"
+    ],
+    "tool": [
+     "NCBI GEO",
+     "https://www.ncbi.nlm.nih.gov/geo/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the logistic regression and decision tree sections. Then add cross-validation and an ROC curve, and ask Claude to find flaws.",
+    "c": [
+     "Machine Learning with Scikit-Learn",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/machine-learning-with-scikit-learn"
+    ],
+    "tool": [
+     "StatQuest on YouTube",
+     "https://www.youtube.com/@statquest"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Do the classification module. Then finish both notebooks and publish project 3.",
+    "c": [
+     "Machine Learning Crash Course, classification module",
+     "Google, free",
+     "https://developers.google.com/machine-learning/crash-course"
+    ],
+    "tool": [
+     "GitHub",
+     "https://github.com/"
+    ],
+    "h": 4
+   }
+  ]
+ },
+ {
+  "title": "Week 4: judging and writing with AI",
+  "goal": "Goal: know where the models help and where they fail. You finish with project 4.",
+  "days": [
+   {
+    "t": "Take the AI fluency course.",
+    "c": [
+     "Anthropic courses: AI fluency",
+     "Anthropic, free",
+     "https://anthropic.skilljar.com/"
+    ],
+    "tool": null,
+    "h": 1
+   },
+   {
+    "t": "Watch the course. Then have Claude draft a Specific Aims page from your week 2 work and review it as a study section would.",
+    "c": [
+     "Generative AI Tools for Productivity and Research",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/generative-ai-tools-for-productivity-and-research"
+    ],
+    "tool": [
+     "Claude",
+     "https://claude.ai/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the course. Then ask Claude to check the claims in one of your published papers against its figures.",
+    "c": [
+     "Prompt Engineering: How to Talk to the AIs",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/prompt-engineering-how-to-talk-to-the-ais"
+    ],
+    "tool": [
+     "Claude",
+     "https://claude.ai/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Watch the course. Then write 20 expert questions with answer keys, 10 on cystinosis and 10 on transplant rejection.",
+    "c": [
+     "Introduction to Prompt Engineering for Generative AI",
+     "LinkedIn",
+     "https://www.linkedin.com/learning/introduction-to-prompt-engineering-for-generative-ai-24636124"
+    ],
+    "tool": null,
+    "h": 2
+   },
+   {
+    "t": "Watch the lecture for how these models work. Then run your questions through Claude and ChatGPT and score the answers.",
+    "c": [
+     "MIT Deep Learning in Life Sciences, lecture 1",
+     "YouTube",
+     "https://www.youtube.com/watch?v=0jWOZoTsYzI"
+    ],
+    "tool": [
+     "Claude",
+     "https://claude.ai/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Take one short course. Then save a workflow you repeated this month as a reusable prompt set.",
+    "c": [
+     "Anthropic courses: Claude Code",
+     "Anthropic, free",
+     "https://anthropic.skilljar.com/"
+    ],
+    "tool": [
+     "Claude",
+     "https://claude.ai/"
+    ],
+    "h": 2
+   },
+   {
+    "t": "Build day. Write two pages on where AI helps and where it fails, and publish project 4.",
+    "c": null,
+    "tool": [
+     "GitHub",
+     "https://github.com/"
+    ],
+    "h": 4
+   }
+  ]
+ },
+ {
+  "title": "Days 29 and 30: CV and LinkedIn",
+  "goal": "Goal: make the four projects visible.",
+  "days": [
+   {
+    "t": "Update your CV with a Projects section linking the four projects.",
+    "c": null,
+    "tool": null,
+    "h": 2
+   },
+   {
+    "t": "Update your LinkedIn headline, summary and projects.",
+    "c": null,
+    "tool": [
+     "LinkedIn",
+     "https://www.linkedin.com/"
+    ],
+    "h": 2
+   }
+  ]
+ }
+];
+var KEY = "aixbio-tracker-v1", state = {};
+try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { state = {}; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function fmt(d){ return d.toLocaleDateString("en-US",{weekday:"short",day:"numeric",month:"short"}); }
+var wrap = document.getElementById("weeks"), n = 0, today = new Date().toDateString();
+WEEKS.forEach(function(w, wi){
+  var sec = document.createElement("section");
+  sec.innerHTML = '<div class="head"><div class="row"><h2>'+w.title+'</h2><span class="count" id="c'+wi+'"></span></div><p>'+w.goal+'</p><div class="bar"><i id="b'+wi+'"></i></div></div>';
+  w.days.forEach(function(d){
+    var id = "d"+n, date = new Date(START.getFullYear(), START.getMonth(), START.getDate()+n);
+    var lab = document.createElement("label");
+    lab.className = "day" + (date.toDateString()===today ? " today" : "");
+    lab.dataset.week = wi; lab.dataset.hours = d.h;
+    var html = '<input type="checkbox" id="'+id+'"><span class="date">'+fmt(date)+'</span><span class="task">';
+    if (d.c) html += '<span class="course">Course: <a href="'+d.c[2]+'" target="_blank" rel="noopener">'+d.c[0]+'</a> <em>'+d.c[1]+'</em></span>';
+    html += '<span>'+d.t+'</span>';
+    if (d.tool) html += '<span class="tool">Tool: <a href="'+d.tool[1]+'" target="_blank" rel="noopener">'+d.tool[0]+'</a></span>';
+    html += '</span><span class="hrs">'+d.h+' h</span>';
+    lab.innerHTML = html;
+    sec.appendChild(lab); n++;
+  });
+  wrap.appendChild(sec);
+});
+function render(){
+  var all = document.querySelectorAll("label.day"), done = 0, hrs = 0, tot = 0, per = WEEKS.map(function(){return [0,0];});
+  all.forEach(function(lab){
+    var box = lab.querySelector("input"), on = !!state[box.id], h = Number(lab.dataset.hours), wi = lab.dataset.week;
+    box.checked = on; lab.classList.toggle("done", on);
+    tot += h; per[wi][1]++; if (on) { done++; hrs += h; per[wi][0]++; }
+  });
+  per.forEach(function(p, wi){
+    document.getElementById("c"+wi).textContent = p[0]+" of "+p[1]+" days";
+    document.getElementById("b"+wi).style.width = (p[0]/p[1]*100)+"%";
+  });
+  document.getElementById("totalText").textContent = done+" of "+all.length+" days done";
+  document.getElementById("hoursText").textContent = hrs+" of "+tot+" hours";
+  document.getElementById("totalBar").style.width = (done/all.length*100)+"%";
+}
+wrap.addEventListener("change", function(e){ if (e.target.type==="checkbox") { state[e.target.id] = e.target.checked; save(); render(); } });
+wrap.addEventListener("click", function(e){ if (e.target.tagName==="A") e.stopPropagation(); });
+document.getElementById("reset").addEventListener("click", function(){ if (confirm("Clear all ticks?")) { state = {}; save(); render(); } });
+render();
+</script>
+</body>
+</html>
